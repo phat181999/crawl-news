@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import path from 'path';
@@ -9,9 +9,11 @@ const NewsAPI = require('newsapi');
 @Injectable()
 export class AppService {
 
-  constructor(private configService: ConfigService, private readonly mailService: MailerService) {
-
-  }
+  constructor(
+    private configService: ConfigService, 
+    private readonly mailService: MailerService,
+    private logger: Logger
+  ) {}
 
   getHello(): string {
     return 'Hello World!';
@@ -27,9 +29,10 @@ export class AppService {
         language: 'en',
         country: 'us',
       });
-      
+      this.logger.log(res, "getNews")
       return res;
     } catch (err) {
+      this.logger.error(err, "getNews")
       throw new InternalServerErrorException('Failed to fetch news');
     }
   }
@@ -42,21 +45,23 @@ export class AppService {
         await this.mailService.sendMail({
           to: 'hotanphat.htp99@gmail.com',
           subject: `CronJob News`,
-          template: './newsTemplate', 
+          template: './templates/newsTemplate', 
           context: {
             articles: news.articles,
           },
         });
       }
     } catch (error) {
+      this.logger.error(error, "getNews")
       throw new InternalServerErrorException('Failed to send mail');
-    }
+    } 
   }
 
-  @Cron(CronExpression.EVERY_2_HOURS)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     const news = await this.getNews();
     await this.sendMail(news);
+    this.logger.log("send mail successfully")
   }
 
 }

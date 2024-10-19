@@ -7,10 +7,9 @@
     "assets": [
       {
         "include": "templates/**/*.hbs",
-        "outDir": "dist"
+        "outDir": "dist/src/templates"
       }
-    ], 
+    ],
     "watchAssets": true     
-
   }
 }
